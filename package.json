@@ -1,0 +1,129 @@
+{
+    "name": "commit-ai",
+    "displayName": "commit-ai",
+    "description": "",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.77.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [],
+    "main": "./out/extension.js",
+    "contributes": {
+        "views": {
+            "scm": [
+                {
+                    "type": "webview",
+                    "id": "commit-ai.commitSuggestionsView",
+                    "name": "Commit AI"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "calicoColors.addColor",
+                "category": "Calico Colors",
+                "title": "Add Color"
+            },
+            {
+                "command": "calicoColors.clearColors",
+                "category": "Calico Colors",
+                "title": "Clear Colors",
+                "icon": "$(clear-all)"
+            },
+            {
+                "command": "commit-ai.getCommitSuggestions",
+                "category": "Commit AI",
+                "title": "Get commit suggestions"
+            },
+            {
+                "command": "commit-ai.clearCommitSuggestions",
+                "category": "Commit AI",
+                "title": "Clear suggestions",
+                "icon": "$(clear-all)"
+            },
+            {
+                "command": "commit-ai.requestCommitMessages",
+                "category": "Commit AI",
+                "title": "Request commit suggestions"
+            },
+            {
+                "command": "commit-ai.setOpenAiApiKey",
+                "category": "Commit AI",
+                "title": "Set API Key"
+            },
+            {
+                "command": "commit-ai.clearOpenAiApiKey",
+                "category": "Commit AI",
+                "title": "Clear API Key"
+            }
+        ],
+        "menus": {
+            "view/title": [
+                {
+                    "command": "commit-ai.clearCommitSuggestions",
+                    "group": "navigation",
+                    "when": "view == commit-ai.commitSuggestionsView"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "Commit AI",
+            "properties": {
+                "commit-ai.commitMessagePrompt": {
+                    "type": "string",
+                    "default": "You are a senior software developer. Analyze this git diff output and generate 3 commit messages. Each version should not exceed 50 characters count. Provide your response in english. Be concise and minimal.",
+                    "description": "The prompt used for the commit messages suggestions",
+                    "maxLength": 280
+                },
+                "commit-ai.maxTokens": {
+                    "type": "integer",
+                    "default": 100,
+                    "description": "The maximum number of tokens to generate in the chat completion."
+                },
+                "commit-ai.temperature": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "What sampling temperature to use, between 0 and 2. Example: 0.8",
+                    "maximum": 2
+                },
+                "commit-ai.gptModel": {
+                    "type": "string",
+                    "default": "gpt-3.5-turbo",
+                    "enum": [
+                        "gpt-3.5-turbo",
+                        "gpt-4"
+                    ],
+                    "description": "ID of the model to use. https://platform.openai.com/docs/models/model-endpoint-compatibility"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "test": "node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/glob": "^8.1.0",
+        "@types/mocha": "^10.0.1",
+        "@types/node": "16.x",
+        "@types/vscode": "^1.77.0",
+        "@typescript-eslint/eslint-plugin": "^5.56.0",
+        "@typescript-eslint/parser": "^5.56.0",
+        "@vscode/test-electron": "^2.3.0",
+        "eslint": "^8.36.0",
+        "glob": "^8.1.0",
+        "mocha": "^10.2.0",
+        "typescript": "^4.9.5"
+    },
+    "dependencies": {
+        "gpt-3-encoder": "^1.1.4",
+        "openai": "^3.2.1"
+    }
+}
