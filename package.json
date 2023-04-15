@@ -1,4 +1,5 @@
 {
+    "publisher": "donnierich",
     "name": "commit-ai",
     "displayName": "commit-ai",
     "description": "",
@@ -12,40 +13,9 @@
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
-        "views": {
-            "scm": [
-                {
-                    "type": "webview",
-                    "id": "commit-ai.commitSuggestionsView",
-                    "name": "Commit AI"
-                }
-            ]
-        },
         "commands": [
             {
-                "command": "calicoColors.addColor",
-                "category": "Calico Colors",
-                "title": "Add Color"
-            },
-            {
-                "command": "calicoColors.clearColors",
-                "category": "Calico Colors",
-                "title": "Clear Colors",
-                "icon": "$(clear-all)"
-            },
-            {
-                "command": "commit-ai.getCommitSuggestions",
-                "category": "Commit AI",
-                "title": "Get commit suggestions"
-            },
-            {
-                "command": "commit-ai.clearCommitSuggestions",
-                "category": "Commit AI",
-                "title": "Clear suggestions",
-                "icon": "$(clear-all)"
-            },
-            {
-                "command": "commit-ai.requestCommitMessages",
+                "command": "commit-ai.requestCommitSuggestion",
                 "category": "Commit AI",
                 "title": "Request commit suggestions"
             },
@@ -61,11 +31,11 @@
             }
         ],
         "menus": {
-            "view/title": [
+            "scm/title": [
                 {
-                    "command": "commit-ai.clearCommitSuggestions",
-                    "group": "navigation",
-                    "when": "view == commit-ai.commitSuggestionsView"
+                    "command": "commit-ai.requestCommitSuggestion",
+                    "when": "scmProvider == git && git.state == initialized",
+                    "group": "inline"
                 }
             ]
         },
@@ -74,9 +44,9 @@
             "properties": {
                 "commit-ai.commitMessagePrompt": {
                     "type": "string",
-                    "default": "You are a senior software developer. Analyze this git diff output and generate 3 commit messages. Each version should not exceed 50 characters count. Provide your response in english. Be concise and minimal.",
+                    "default": "You are a senior software developer. Analyze this git diff output and generate a commit message and a short description. The commit message must not exceed 50 characters count, the commit description could be longer. Provide your response in english. Be concise and minimal. Write only the message and the description. Example: 'Added comments\n\nShort comments for some tricky methods'",
                     "description": "The prompt used for the commit messages suggestions",
-                    "maxLength": 280
+                    "maxLength": 400
                 },
                 "commit-ai.maxTokens": {
                     "type": "integer",
