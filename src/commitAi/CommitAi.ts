@@ -8,33 +8,39 @@ const { Configuration, OpenAIApi } = require('openai');
 
 export class CommitAi {
 
-    private gitApi?: GitApi | undefined;
-    private apiKey?: string;
-    private repository?: Repository;
-
     constructor(
         public context: vscode.ExtensionContext,
+        private enabled: Boolean = false,
+        private apiKey: string = '',
+        private gitApi?: GitApi,
+        private repository?: Repository,
     ) {
         this.init();
     }
 
     public async checkApiKey() {
-        let apiKey = await this.context.secrets.get('openai-api-key') || "";
-
-        if (apiKey.length <= 0) {
-            this.context.workspaceState.update('isOpenAiApiKeySet', undefined);
-        } else {
-            this.context.workspaceState.update('isOpenAiApiKeySet', true);
+        if (!this.context.workspaceState.get('isOpenAiApiKeySet', false)) {
+            await this.writeApiKey();
         }
     }
 
     public async setApiKey() {
+        if (this.apiKey.length <= 0) {
+            const apiKey = await this.readApiKey();
+            this.apiKey = apiKey;
+        }
+    }
+
+    public async writeApiKey() {
         const apiKey = await vscode.window.showInputBox({
             prompt: "Please insert API Key",
             title: "API Key"
         });
         await this.context.secrets.store('openai-api-key', apiKey || "");
         vscode.commands.executeCommand('setContext', 'commit-ai.isOpenAiApiKeySet', true);
+        this.context.workspaceState.update('isOpenAiApiKeySet', true);
+
+        await this.setApiKey();
 
         // Display a message box to the user
         vscode.window.showInformationMessage('commit-ai API key set!');
@@ -48,19 +54,20 @@ export class CommitAi {
 
         if (resp === "Clear") {
             await this.context.secrets.store('openai-api-key', "");
-            this.context.workspaceState.update('isOpenAiApiKeySet', false);
+            vscode.commands.executeCommand('setContext', 'commit-ai.isOpenAiApiKeySet', false);
+            this.context.workspaceState.update('isOpenAiApiKeySet', undefined);
 
             // Display a message box to the user
             vscode.window.showInformationMessage('commit-ai API key cleared!');
         }
     }
 
-    private async getApiKey() {
-        const apiKey = await this.context.secrets.get('openai-api-key') || "";
-        if (apiKey.length <= 0) {
-            throw new Error('API Key not found!');
-        }
-        return apiKey;
+    private async readApiKey() {
+        return await this.context.secrets.get('openai-api-key') || "";
+    }
+
+    public disable() {
+        this.enabled = false;
     }
 
     private async getDiff(cwd: vscode.Uri) {
@@ -83,64 +90,65 @@ export class CommitAi {
             cwd = vscode.workspace.workspaceFolders[0].uri;
         }
 
-        if (cwd) {
-            const { stdout, stderr } = await this.getDiff(cwd);
+        if (this.apiKey.length <= 0) {
+            throw new Error('Missing OpenAI api key!');
+        }
 
-            if (stderr.length > 0) {
-                console.log(stderr);
-                vscode.window.showErrorMessage('Error during diff command execution');
-                return;
-            }
+        if (cwd.toString().length <= 0) {
+            throw new Error('Invalid workspace directory!');
+        }
 
-            if (stdout.length <= 0) {
-                vscode.window.showErrorMessage('Diff output not available. Please add files to the stage.');
-                return;
-            }
+        const { stdout, stderr } = await this.getDiff(cwd);
 
-            // checking if exceeding context length for AI model
-            const encoded = encode(stdout);
-            if (encoded.length < 4000) {
+        if (stderr.length > 0) {
+            throw new Error('Error during diff command execution');
+        }
 
-                // Display a message box to the user
-                vscode.window.showInformationMessage('Getting data from API...');
+        if (stdout.length <= 0) {
+            throw new Error('Diff output not available. Please add files to the stage.');
+        }
 
-                const openai = new OpenAIApi(configuration);
-                const response = await openai.createChatCompletion({
-                    model: config.get('gptModel'),
-                    messages: [
-                        {
-                            "role": "user",
-                            "content": config.get('commitMessagePrompt')
-                        },
-                        {
-                            "role": "user",
-                            "content": stdout
-                        }
-                    ],
-                    temperature: config.get('temperature'),
-                    max_tokens: config.get('maxTokens'),
-                });
+        // checking if exceeding context length for AI model
+        const encoded = encode(stdout);
+        if (encoded.length < 4000) {
 
-                vscode.window.showInformationMessage('Data retrieved!');
-                const suggestions = response.data.choices[0].message.content;
+            // Display a message box to the user
+            vscode.window.showInformationMessage('Getting data from API...');
 
-                this.setCommitSuggestion(suggestions);
-                return;
-            } else {
-                vscode.window.showErrorMessage('Git diff too long... cannot make request to OpenAI Api');
-            }
+            const openai = new OpenAIApi(configuration);
+            const response = await openai.createChatCompletion({
+                model: config.get('gptModel'),
+                messages: [
+                    {
+                        "role": "user",
+                        "content": config.get('commitMessagePrompt')
+                    },
+                    {
+                        "role": "user",
+                        "content": stdout
+                    }
+                ],
+                temperature: config.get('temperature'),
+                max_tokens: config.get('maxTokens'),
+            });
+
+            vscode.window.showInformationMessage('Data retrieved!');
+            const suggestions = response.data.choices[0].message.content;
+
+            this.setCommitSuggestion(suggestions);
+            return;
+        } else {
+            throw new Error('Git diff too long... cannot make request to OpenAI Api');
         }
     }
 
     private async init() {
-        try {
-            this.apiKey = await this.getApiKey();
-            this.initGitApi();
+
+        if (!this.enabled) {
+            await this.setApiKey();
+            await this.initGitApi();
             this.repository = this.getCurrentRepository();
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                vscode.window.showErrorMessage(error.message);
-            }
+            this.enabled = true;
         }
     }
 
