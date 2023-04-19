@@ -8,7 +8,8 @@
         "vscode": "^1.77.0"
     },
     "categories": [
-        "Other"
+        "Other",
+        "SCM Providers"
     ],
     "activationEvents": [],
     "main": "./out/extension.js",
@@ -40,6 +41,11 @@
                 {
                     "command": "commit-ai.setOpenAiApiKey",
                     "when": "scmProvider == git && git.state == initialized && commit-ai.isOpenAiApiKeySet == false",
+                    "group": "inline"
+                },
+                {
+                    "command": "commit-ai.clearOpenAiApiKey",
+                    "when": "scmProvider == git && git.state == initialized && commit-ai.isOpenAiApiKeySet == true",
                     "group": "inline"
                 }
             ]
