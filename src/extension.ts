@@ -20,6 +20,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
         context.subscriptions.push(
             vscode.commands.registerCommand('commit-ai.requestCommitSuggestion', async () => {
+                await openAi.checkApiKey();
                 await openAi.apiRequest();
             }));
     } catch (error: unknown) {
