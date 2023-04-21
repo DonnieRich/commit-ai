@@ -1,71 +1,62 @@
 # commit-ai README
 
-This is the README for your extension "commit-ai". After writing up a brief description, we recommend including the following sections.
+Commit AI is a simple VS Code extension that helps you write better commit messages. It uses OpenAI API to generate a commit suggestion based on the `git --diff --staged --minimal` command output.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Commit AI allows you to generate commit messages and descriptions using OpenAI API.
+It's as simple as a click on the lightbulb icon on the Source Control Panel, or on *Request commit suggestion* in the context menu.
 
-For example if there is an image subfolder under your extension project workspace:
+> Request commit suggestion using icon
 
-\!\[feature X\]\(images/feature-x.png\)
+![Request commit suggestion](./media/readme/clickOnIcon.gif)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+> Request commit suggestion using menu item
 
-## Requirements
+![Request commit suggestion](./media/readme/clickOnMenuItem.gif)
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Commands
+Using VS Code command palette `Ctrl+Shift+P` on Windows (`Cmd+Shift+P` on Mac) you can call the following commands:
+
+* `[Commit AI] Request commit suggestion`: To request a suggestion based on your diff output
+* `[Commit AI] Set API Key`: To save on your local workspace your OpenAI API key
+* `[Commit AI] Clear API Key`: To remove your OpenAI API key from your local workspace
+
+### Note
+
+Your API key is stored locally leveraging VS Code *secret storage*.
+We do not have access to your api key.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* `commit-ai.commitMessagePrompt`: The prompt used to request the commit suggestion.
+* `commit-ai.maxTokens`: The maximum number of tokens available to the API for the commit suggestion.
+* `commit-ai.temperature`: What sampling temperature to use, between 0 and 2. Higher value means more creativity from the API. Example: 0.8
+* `commit-ai.gptModel`: What GPT model to use for completing the request. NOTE: not all models are available for certain endpoints. See [Models Endpoint Compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)"
+ * `commit-ai.gptApiEndpoint`: What endpoint to call for the request. NOTE: not all models are available for certain endpoints. See [Models Endpoint Compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)"
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Seems like the extension keep asking for the OpenAI API key after you re-open VS Code.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
+### 0.0.1
 ---
 
-## Following extension guidelines
+You can make request to the OpenAI API and select the model and endpoint you prefer.
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+## NOTE
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+This extension works by making request to the OpenAI API. In order to call those API you need to insert your personal API key.
 
-## Working with Markdown
+You can create an account and request an API key using this link [OpenAI](https://platform.openai.com/)
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+This extension send the `git --diff --staged --minimal` output to OpenAI.
 
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+DO NOT USE THIS EXTENSION if you are working on sensitive information that should not be shared outside your workplace environment.
 
 **Enjoy!**
