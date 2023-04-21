@@ -11,14 +11,31 @@
         "Other",
         "SCM Providers"
     ],
+    "keywords": [
+        "productivity",
+        "git",
+        "openai",
+        "generate",
+        "commit",
+        "message",
+        "vscode"
+    ],
     "activationEvents": [],
     "main": "./out/extension.js",
+    "icon": "./src/icons/icon.png",
+    "repository": {
+        "url": "https://github.com/DonnieRich/commit-ai.git"
+    },
     "contributes": {
         "commands": [
             {
                 "command": "commit-ai.requestCommitSuggestion",
                 "category": "Commit AI",
-                "title": "[Commit AI] Request commit suggestion"
+                "title": "[Commit AI] Request commit suggestion",
+                "icon": {
+                    "dark": "./src/icons/lightbulb-autofix-dark.svg",
+                    "light": "./src/icons/lightbulb-autofix-light.svg"
+                }
             },
             {
                 "command": "commit-ai.setOpenAiApiKey",
@@ -35,17 +52,12 @@
             "scm/title": [
                 {
                     "command": "commit-ai.requestCommitSuggestion",
-                    "when": "scmProvider == git && git.state == initialized && commit-ai.isOpenAiApiKeySet == true",
-                    "group": "inline"
+                    "when": "scmProvider == git && git.state == initialized",
+                    "group": "navigation"
                 },
                 {
-                    "command": "commit-ai.setOpenAiApiKey",
-                    "when": "scmProvider == git && git.state == initialized && commit-ai.isOpenAiApiKeySet == false",
-                    "group": "inline"
-                },
-                {
-                    "command": "commit-ai.clearOpenAiApiKey",
-                    "when": "scmProvider == git && git.state == initialized && commit-ai.isOpenAiApiKeySet == true",
+                    "command": "commit-ai.requestCommitSuggestion",
+                    "when": "scmProvider == git && git.state == initialized",
                     "group": "inline"
                 }
             ]
@@ -55,18 +67,18 @@
             "properties": {
                 "commit-ai.commitMessagePrompt": {
                     "type": "string",
-                    "default": "You are a senior software developer. Analyze this git diff output and generate a commit message and a short description. The commit message must not exceed 50 characters count, the commit description could be longer. Provide your response in english. Be concise and minimal. Write only the message and the description. Example: Added comments\n\nShort comments for some tricky methods",
+                    "default": "You are a senior software developer. Analyze this git diff output and generate a commit message and a short description. The message must not exceed 50 characters count, the description may be a little longer. Provide your response in english. Be concise and minimal. Write only the message and the description. Example: Fixed bug on forEach cicle\n\nRemoved typo for array length in the condition",
                     "description": "The prompt used for the commit messages suggestions",
                     "maxLength": 400
                 },
                 "commit-ai.maxTokens": {
                     "type": "integer",
                     "default": 100,
-                    "description": "The maximum number of tokens to generate in the chat completion."
+                    "description": "The maximum number of tokens available to the API for the commit suggestion."
                 },
                 "commit-ai.temperature": {
                     "type": "number",
-                    "default": 0,
+                    "default": 0.5,
                     "description": "What sampling temperature to use, between 0 and 2. Example: 0.8",
                     "maximum": 2
                 },
@@ -75,9 +87,24 @@
                     "default": "gpt-3.5-turbo",
                     "enum": [
                         "gpt-3.5-turbo",
-                        "gpt-4"
+                        "gpt-4",
+                        "gpt-4-32k",
+                        "text-davinci-003",
+                        "text-davinci-002",
+                        "text-curie-001",
+                        "text-babbage-001",
+                        "text-ada-001"
                     ],
-                    "description": "ID of the model to use. https://platform.openai.com/docs/models/model-endpoint-compatibility"
+                    "markdownDescription": "ID of the model to use. See [Models Endpoint Compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)"
+                },
+                "commit-ai.gptApiEndpoint": {
+                    "type": "string",
+                    "default": "createChatCompletion",
+                    "enum": [
+                        "createChatCompletion",
+                        "createCompletion"
+                    ],
+                    "markdownDescription": "Endpoint to call. See [Models Endpoint Compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)"
                 }
             }
         }
@@ -97,6 +124,7 @@
         "@types/vscode": "^1.77.0",
         "@typescript-eslint/eslint-plugin": "^5.56.0",
         "@typescript-eslint/parser": "^5.56.0",
+        "@vscode/codicons": "^0.0.32",
         "@vscode/test-electron": "^2.3.0",
         "eslint": "^8.36.0",
         "glob": "^8.1.0",
