@@ -22,7 +22,7 @@
     ],
     "activationEvents": [],
     "main": "./out/extension.js",
-    "icon": "./src/icons/icon.png",
+    "icon": "media/icon/icon.png",
     "repository": {
         "url": "https://github.com/DonnieRich/commit-ai.git"
     },
