@@ -43,6 +43,21 @@ Seems like the extension keep asking for the OpenAI API key after you re-open VS
 
 ## Release Notes
 
+### 0.0.4
+---
+
+Fixed API key management
+
+### 0.0.3
+---
+
+Added extension description on package.json
+
+### 0.0.2
+---
+
+Fixed a bug about the icons not showing on the Source Control panel header
+
 ### 0.0.1
 ---
 

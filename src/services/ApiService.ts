@@ -8,22 +8,12 @@ export class ApiService {
 
     constructor(
         public context: vscode.ExtensionContext,
-        private gitApi?: GitService,
-        private apiKey: string = '',
+        private gitApi?: GitService
     ) { }
 
     public async checkApiKey() {
-        if (!this.context.workspaceState.get('isOpenAiApiKeySet', false) || this.apiKey.length <= 0) {
+        if (!this.context.workspaceState.get('isOpenAiApiKeySet', false)) {
             await this.writeApiKey();
-        }
-    }
-
-    public async setApiKey(apiKey: string = '') {
-        if (this.apiKey.length <= 0) {
-            if (apiKey.length <= 0) {
-                apiKey = await this.readApiKey();
-            }
-            this.apiKey = apiKey;
         }
     }
 
@@ -37,8 +27,6 @@ export class ApiService {
             await this.context.secrets.store('openai-api-key', apiKey || "");
             vscode.commands.executeCommand('setContext', 'commit-ai.isOpenAiApiKeySet', true);
             this.context.workspaceState.update('isOpenAiApiKeySet', true);
-
-            await this.setApiKey(apiKey);
 
             vscode.window.showInformationMessage('commit-ai API key set!');
         } else {
@@ -95,11 +83,6 @@ export class ApiService {
         // get extension config
         const config = vscode.workspace.getConfiguration('commit-ai');
 
-        if (this.apiKey.length <= 0) {
-            vscode.window.showErrorMessage('commit-ai missing OpenAI api key!');
-            throw new Error('commit-ai missing OpenAI api key!');
-        }
-
         const { stdout, stderr } = await this.gitApi?.getDiff();
 
         if (stderr.length > 0) {
@@ -119,7 +102,7 @@ export class ApiService {
         if (encoded.length < 4000) {
 
             const configuration = new Configuration({
-                apiKey: this.apiKey,
+                apiKey: await this.context.secrets.get('openai-api-key'),
             });
 
             const openai = new OpenAIApi(configuration);
