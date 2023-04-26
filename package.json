@@ -1,7 +1,7 @@
 {
     "publisher": "donnierich",
-    "name": "commit-ai",
-    "displayName": "commit-ai",
+    "name": "donnierich-commit-ai",
+    "displayName": "Commit AI",
     "description": "",
     "version": "0.0.1",
     "engines": {
@@ -22,7 +22,7 @@
     ],
     "activationEvents": [],
     "main": "./out/extension.js",
-    "icon": "media/icon/icon.png",
+    "icon": "media/icons/icon.png",
     "repository": {
         "url": "https://github.com/DonnieRich/commit-ai.git"
     },
@@ -33,8 +33,8 @@
                 "category": "Commit AI",
                 "title": "[Commit AI] Request commit suggestion",
                 "icon": {
-                    "dark": "./src/icons/lightbulb-autofix-dark.svg",
-                    "light": "./src/icons/lightbulb-autofix-light.svg"
+                    "dark": "media/icons/lightbulb-autofix-dark.svg",
+                    "light": "media/icons/lightbulb-autofix-light.svg"
                 }
             },
             {
