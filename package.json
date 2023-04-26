@@ -2,7 +2,7 @@
     "publisher": "donnierich",
     "name": "donnierich-commit-ai",
     "displayName": "Commit AI",
-    "description": "",
+    "description": "Commit messages made simple",
     "version": "0.0.3",
     "engines": {
         "vscode": "^1.77.0"
