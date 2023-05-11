@@ -11,13 +11,20 @@ export class ApiService {
         private gitApi?: GitService
     ) { }
 
-    public async checkApiKey() {
-        if (!this.context.workspaceState.get('isOpenAiApiKeySet', false)) {
-            await this.writeApiKey();
+    public async checkApiKey(): Promise<boolean> {
+        let result = false;
+        if (!this.context.globalState.get('isOpenAiApiKeySet', false)) {
+            result = await this.writeApiKey();
+        } else {
+            vscode.commands.executeCommand('setContext', 'commit-ai.isOpenAiApiKeySet', true);
+            result = true;
         }
+
+        return result;
     }
 
-    public async writeApiKey() {
+    public async writeApiKey(): Promise<boolean> {
+        let result = false;
         const apiKey = await vscode.window.showInputBox({
             prompt: "Please insert API Key",
             title: "API Key"
@@ -26,13 +33,15 @@ export class ApiService {
         if (apiKey) {
             await this.context.secrets.store('openai-api-key', apiKey || "");
             vscode.commands.executeCommand('setContext', 'commit-ai.isOpenAiApiKeySet', true);
-            this.context.workspaceState.update('isOpenAiApiKeySet', true);
+            this.context.globalState.update('isOpenAiApiKeySet', true);
 
             vscode.window.showInformationMessage('commit-ai API key set!');
+            result = true;
         } else {
             vscode.window.showErrorMessage('commit-ai cannot set empty apikey!');
-            throw new Error('commit-ai cannot set empty apikey!');
         }
+
+        return result;
     }
 
     public async clearApiKey() {
@@ -44,9 +53,8 @@ export class ApiService {
         if (resp === "Clear") {
             await this.context.secrets.store('openai-api-key', "");
             vscode.commands.executeCommand('setContext', 'commit-ai.isOpenAiApiKeySet', false);
-            this.context.workspaceState.update('isOpenAiApiKeySet', undefined);
+            this.context.globalState.update('isOpenAiApiKeySet', undefined);
 
-            // Display a message box to the user
             vscode.window.showInformationMessage('commit-ai API key cleared!');
         }
     }
@@ -78,7 +86,14 @@ export class ApiService {
 
     public async apiRequest() {
 
-        await this.checkApiKey();
+        if (!await this.checkApiKey()) {
+            return;
+        }
+
+        if (!await this.checkUserDataPermission()) {
+            vscode.window.showErrorMessage('commit-ai permission not granted!');
+            return;
+        }
 
         // get extension config
         const config = vscode.workspace.getConfiguration('commit-ai');
@@ -188,6 +203,41 @@ export class ApiService {
         this.gitApi = new GitService();
         await this.gitApi?.init();
 
+    }
+
+    private async checkUserDataPermission(): Promise<boolean> {
+        const workspaceDataPermission = this.context.workspaceState.get('commit-ai-data-permission', false);
+        const globalDataPermission = this.context.globalState.get('commit-ai-data-permission', false);
+
+        let userSelection;
+        let permission = false;
+
+        if (!workspaceDataPermission && !globalDataPermission) {
+            userSelection = await vscode.window.showWarningMessage('This extension send the git diff output to OpenAI. DO NOT USE this extension if you are working on sensitive information that should not be shared outside your workplace environment',
+                'Allow for this workspace',
+                'Allow globally',
+                'Do not allow'
+            );
+        } else {
+            permission = true;
+        }
+
+        switch (userSelection) {
+            case 'Allow for this workspace':
+                this.context.workspaceState.update('commit-ai-data-permission', true);
+                permission = true;
+                break;
+            case 'Allow globally':
+                this.context.globalState.update('commit-ai-data-permission', true);
+                permission = true;
+                break;
+            default:
+                this.context.workspaceState.update('commit-ai-data-permission', false);
+                this.context.globalState.update('commit-ai-data-permission', false);
+                break;
+        }
+
+        return permission;
     }
 
     private async readApiKey() {

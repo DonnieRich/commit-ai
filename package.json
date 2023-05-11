@@ -59,6 +59,11 @@
                     "command": "commit-ai.requestCommitSuggestion",
                     "when": "scmProvider == git && git.state == initialized",
                     "group": "inline"
+                },
+                {
+                    "command": "commit-ai.setOpenAiApiKey",
+                    "when": "!commit-ai.isOpenAiApiKeySet",
+                    "group": "inline"
                 }
             ]
         },
